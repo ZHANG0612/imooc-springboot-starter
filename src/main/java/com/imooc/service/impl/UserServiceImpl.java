@@ -3,6 +3,9 @@ package com.imooc.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,7 @@ import com.imooc.mapper.SysUserMapperCustom;
 import com.imooc.pojo.SysUser;
 import com.imooc.service.UserService;
 
+import net.sf.ehcache.CacheManager;
 import tk.mybatis.mapper.entity.Example;
 
 @Service
@@ -25,8 +29,12 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private SysUserMapperCustom userMapperCustom;
 	
+	@Autowired
+    CacheManager cacheManager;
+	
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	@CachePut(value = "user", key = "#user.id")
 	public void saveUser(SysUser user) throws Exception {
 		
 		try {
@@ -40,6 +48,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	@CachePut(value = "user", key = "#user.id")
 	public void updateUser(SysUser user) {
 		
 		userMapper.updateByPrimaryKeySelective(user);
@@ -48,12 +57,14 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	@CacheEvict(value = "user", key = "#userId")
 	public void deleteUser(String userId) {
 		userMapper.deleteByPrimaryKey(userId);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
+	@Cacheable(value = "user", key = "#userId")
 	public SysUser queryUserById(String userId) {
 		
 		try {
@@ -61,7 +72,8 @@ public class UserServiceImpl implements UserService {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+		System.out.println(cacheManager.toString());
+		System.out.println("从数据库中读取，而非读取缓存!!!");
 		return userMapper.selectByPrimaryKey(userId);
 	}
 
@@ -125,6 +137,7 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	@CachePut(value = "user", key = "#user.id")
 	public void saveUserTransactional(SysUser user) {
 		
 		userMapper.insert(user);

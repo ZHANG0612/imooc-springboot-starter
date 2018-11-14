@@ -4,9 +4,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.n3r.idworker.Sid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -102,6 +101,7 @@ public class MyBatisCRUDController {
 	}
 	
 	@RequestMapping("/queryUserByIdCustom")
+	@Cacheable(value = "user", key = "#userId")
 	public IMoocJSONResult queryUserByIdCustom(String userId) {
 		
 		return IMoocJSONResult.ok(userService.queryUserByIdCustom(userId));
